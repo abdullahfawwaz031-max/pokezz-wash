@@ -3,57 +3,40 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# --- KONFIGURASI DASAR ---
+# Inisialisasi file database
 FILE_DATA = "data_cucian.csv"
 PASSWORD_ADMIN = "informatika2026"
 
-# Inisialisasi file database jika belum ada
 if not os.path.exists(FILE_DATA):
     df_init = pd.DataFrame(columns=["Waktu", "Nama", "Plat", "Layanan", "Total"])
     df_init.to_csv(FILE_DATA, index=False)
 
-# --- TAMPILAN UTAMA ---
 st.set_page_config(page_title="Kasir Cuci Motor", layout="wide")
 st.title("🏍️ Sistem Kasir Cuci Motor")
 
-# Sidebar untuk navigasi
 menu_nav = st.sidebar.radio("Navigasi", ["Input Pesanan", "Laporan Penjualan (Admin)"])
 
-# --- FITUR 1: INPUT PESANAN ---
 if menu_nav == "Input Pesanan":
     st.header("📝 Catat Cucian Baru")
-    
     col1, col2 = st.columns(2)
     with col1:
         nama = st.text_input("Nama Pelanggan")
         plat = st.text_input("Nomor Plat").upper()
-    
     with col2:
-        layanan_pilihan = st.multiselect(
-            "Pilih Layanan:",
-            ["Cuci Biasa (15rb)", "Cuci Salju (20rb)", "Poles Bodi (15rb)", "Cuci Helm (10rb)"]
-        )
+        layanan_pilihan = st.multiselect("Pilih Layanan:", ["Cuci Biasa (15rb)", "Cuci Salju (20rb)", "Poles Bodi (15rb)", "Cuci Helm (10rb)"])
 
-    # Logika Harga
     harga_map = {"Cuci Biasa (15rb)": 15000, "Cuci Salju (20rb)": 20000, "Poles Bodi (15rb)": 15000, "Cuci Helm (10rb)": 10000}
     total_bayar = sum(harga_map[item] for item in layanan_pilihan)
 
     if st.button("Simpan & Cetak Struk"):
         if nama and plat and layanan_pilihan:
-            data_baru = {
-                "Waktu": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Nama": nama,
-                "Plat": plat,
-                "Layanan": ", ".join(layanan_pilihan),
-                "Total": total_bayar
-            }
+            data_baru = {"Waktu": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Nama": nama, "Plat": plat, "Layanan": ", ".join(layanan_pilihan), "Total": total_bayar}
             pd.DataFrame([data_baru]).to_csv(FILE_DATA, mode='a', header=False, index=False)
             st.success(f"Berhasil disimpan! Total: Rp {total_bayar:,}")
             st.balloons()
         else:
             st.warning("Mohon lengkapi data!")
 
-# --- FITUR 2: LAPORAN ADMIN ---
 elif menu_nav == "Laporan Penjualan (Admin)":
     st.header("📊 Rekap Pendapatan")
     input_pass = st.text_input("Masukkan Password Admin", type="password")
